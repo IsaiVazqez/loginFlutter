@@ -9,10 +9,11 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
         debugShowCheckedModeBanner: false,
         title: 'ProductosApp',
-        initialRoute: 'home',
+        initialRoute: 'login',
         routes: {
           'login': (_) => LoginScreen(),
           'home': (_) => HomeScreen(),
+          'product': (_) => ProductSreen(),
         },
         theme: ThemeData.light().copyWith(
             scaffoldBackgroundColor: Colors.grey[300],
