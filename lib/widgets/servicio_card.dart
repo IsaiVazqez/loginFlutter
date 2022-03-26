@@ -1,30 +1,41 @@
 import 'package:flutter/material.dart';
+import 'package:login/models/models.dart';
 
-class ProductCard extends StatelessWidget {
+class ServicioCard extends StatelessWidget {
+  final Servicio servicio;
+
+  const ServicioCard({Key? key, required this.servicio}) : super(key: key);
+
   @override
   Widget build(BuildContext context) {
     return Padding(
       padding: EdgeInsets.symmetric(horizontal: 20),
       child: Container(
-        margin: EdgeInsets.only(top: 30, bottom: 50),
+        margin: EdgeInsets.only(top: 30, bottom: 20),
         width: double.infinity,
-        height: 400,
+        height: 250,
         decoration: _cardBorders(),
         child: Stack(
           alignment: Alignment.bottomLeft,
           children: [
-            _BackgroundImage(),
-            _ProductDetails(),
+            _BackgroundImage(servicio.picture),
+            _ServicioDetails(
+              title: servicio.name,
+              subTitle: servicio.horario,
+            ),
             Positioned(
               top: 0,
               right: 0,
-              child: _PriceTag(),
+              child: _PersonasMax(
+                servicio.personas,
+              ),
             ),
-            Positioned(
-              top: 0,
-              left: 0,
-              child: _NotAvailable(),
-            ),
+            if (servicio.discapacitados)
+              Positioned(
+                top: 0,
+                left: 0,
+                child: _Nodiscapacitados(),
+              ),
           ],
         ),
       ),
@@ -40,7 +51,7 @@ class ProductCard extends StatelessWidget {
           ]);
 }
 
-class _NotAvailable extends StatelessWidget {
+class _Nodiscapacitados extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -48,14 +59,11 @@ class _NotAvailable extends StatelessWidget {
         fit: BoxFit.contain,
         child: Padding(
           padding: EdgeInsets.symmetric(horizontal: 10),
-          child: Text(
-            'No Disponible',
-            style: TextStyle(color: Colors.white, fontSize: 20),
-          ),
+          child: Icon(Icons.wheelchair_pickup_rounded, size: 20),
         ),
       ),
-      width: 100,
-      height: 70,
+      width: 75,
+      height: 60,
       decoration: BoxDecoration(
           color: Colors.green[400],
           borderRadius: BorderRadius.only(
@@ -64,7 +72,10 @@ class _NotAvailable extends StatelessWidget {
   }
 }
 
-class _PriceTag extends StatelessWidget {
+class _PersonasMax extends StatelessWidget {
+  final int personas;
+  const _PersonasMax(this.personas);
+
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -79,16 +90,15 @@ class _PriceTag extends StatelessWidget {
                   child: Icon(Icons.group, size: 24),
                 ),
                 TextSpan(
-                  text: '20 ',
-                  style: TextStyle(color: Colors.white, fontSize: 20),
-                ),
+                    text: ('$personas'),
+                    style: TextStyle(color: Colors.white, fontSize: 25)),
               ],
             ),
           ),
         ),
       ),
-      width: 100,
-      height: 70,
+      width: 80,
+      height: 60,
       alignment: Alignment.center,
       decoration: BoxDecoration(
           color: Colors.indigo,
@@ -98,7 +108,11 @@ class _PriceTag extends StatelessWidget {
   }
 }
 
-class _ProductDetails extends StatelessWidget {
+class _ServicioDetails extends StatelessWidget {
+  final String title;
+  final String subTitle;
+
+  const _ServicioDetails({required this.title, required this.subTitle});
   @override
   Widget build(BuildContext context) {
     return Padding(
@@ -112,7 +126,7 @@ class _ProductDetails extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Futbol',
+              title,
               style: TextStyle(
                   fontSize: 20,
                   color: Colors.white,
@@ -121,7 +135,7 @@ class _ProductDetails extends StatelessWidget {
               overflow: TextOverflow.ellipsis,
             ),
             Text(
-              'Lunes y Martes de 5 pm a 8 pm, Miercoles y viernes de 7pm a 9pm',
+              subTitle,
               style: TextStyle(
                 fontSize: 15,
                 color: Colors.white,
@@ -141,6 +155,10 @@ class _ProductDetails extends StatelessWidget {
 }
 
 class _BackgroundImage extends StatelessWidget {
+  final String? url;
+
+  const _BackgroundImage(this.url);
+
   @override
   Widget build(BuildContext context) {
     return ClipRRect(
@@ -148,11 +166,16 @@ class _BackgroundImage extends StatelessWidget {
       child: Container(
         width: double.infinity,
         height: 400,
-        child: FadeInImage(
-          placeholder: AssetImage('assets/jar-loading.gif'),
-          image: NetworkImage('https://via.placeholder.com/400x300/f6f6f6'),
-          fit: BoxFit.cover,
-        ),
+        child: url == null
+            ? Image(
+                image: AssetImage('assets/no-image.png'),
+                fit: BoxFit.cover,
+              )
+            : FadeInImage(
+                placeholder: AssetImage('assets/jar-loading.gif'),
+                image: NetworkImage(url!),
+                fit: BoxFit.cover,
+              ),
       ),
     );
   }
