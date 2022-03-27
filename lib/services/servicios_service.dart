@@ -1,5 +1,5 @@
 import 'dart:convert';
-
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:login/models/models.dart';
 import 'package:http/http.dart' as http;
@@ -10,6 +10,7 @@ class ServicioService extends ChangeNotifier {
   final List<Servicio> servicio = [];
   bool isLoading = true;
   bool isSaving = false;
+  File? newPictureFile;
   late Servicio selectedServicio;
 
   ServicioService() {
@@ -73,5 +74,43 @@ class ServicioService extends ChangeNotifier {
     this.servicio.add(servicio);
 
     return servicio.id!;
+  }
+
+  void updateSelectedProductImage(String path) {
+    this.selectedServicio.picture = path;
+    this.newPictureFile = File.fromUri(Uri(path: path));
+
+    notifyListeners();
+  }
+
+  Future<String?> uploadImage() async {
+    if (this.newPictureFile == null) return null;
+
+    this.isSaving = true;
+    notifyListeners();
+
+    final url = Uri.parse(
+        'https://api.cloudinary.com/v1_1/dtfknt03k/image/upload?upload_preset=hen9lowa');
+
+    final imageUploadRequest = http.MultipartRequest('POST', url);
+
+    final file =
+        await http.MultipartFile.fromPath('file', newPictureFile!.path);
+
+    imageUploadRequest.files.add(file);
+
+    final streamResponse = await imageUploadRequest.send();
+    final resp = await http.Response.fromStream(streamResponse);
+
+    if (resp.statusCode != 200 && resp.statusCode != 201) {
+      print('algo salio mal');
+      print(resp.body);
+      return null;
+    }
+
+    this.newPictureFile = null;
+
+    final decodedData = json.decode(resp.body);
+    return decodedData['secure_url'];
   }
 }

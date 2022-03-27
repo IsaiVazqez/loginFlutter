@@ -6,6 +6,7 @@ import 'package:login/services/services.dart';
 import 'package:login/userinterface/input_decorations.dart';
 import 'package:login/widgets/widgets.dart';
 import 'package:provider/provider.dart';
+import 'package:image_picker/image_picker.dart';
 
 class ServicioScreen extends StatelessWidget {
   @override
@@ -49,30 +50,49 @@ class _ServicesScreenBody extends StatelessWidget {
                     top: 60,
                     right: 20,
                     child: IconButton(
-                      onPressed: () {},
+                      onPressed: () async {
+                        final picker = new ImagePicker();
+                        final PickedFile? pickedFile = await picker.getImage(
+                            source: ImageSource.gallery, imageQuality: 100);
+                        if (pickedFile == null) {
+                          print('No selecciono una imagén');
+                          return;
+                        }
+                        servicioService
+                            .updateSelectedProductImage(pickedFile.path);
+                      },
                       icon: Icon(Icons.camera_alt_outlined,
                           size: 40, color: Colors.white),
                     )),
               ],
             ),
-            _ProductForm(),
+            _ServicioForm(),
             SizedBox(height: 100),
           ],
         ),
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.endDocked,
       floatingActionButton: FloatingActionButton(
-        child: Icon(Icons.save_outlined),
-        onPressed: () async {
-          if (!servicioForm.isValidForm()) return;
-          await servicioService.saveOrCreateServicio(servicioForm.servicio);
-        },
+        child: servicioService.isSaving
+            ? CircularProgressIndicator(color: Colors.white)
+            : Icon(Icons.save_outlined),
+        onPressed: servicioService.isSaving
+            ? null
+            : () async {
+                if (!servicioForm.isValidForm()) return;
+
+                final String? imageUlr = await servicioService.uploadImage();
+
+                if (imageUlr != null) servicioForm.servicio.picture = imageUlr;
+                await servicioService
+                    .saveOrCreateServicio(servicioForm.servicio);
+              },
       ),
     );
   }
 }
 
-class _ProductForm extends StatelessWidget {
+class _ServicioForm extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final servicioForm = Provider.of<ServiceFormProvider>(context);
